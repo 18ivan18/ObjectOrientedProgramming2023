@@ -11,22 +11,46 @@
 // allocate the memory
 void allocateMemory(int *&array, size_t capacity)
 {
+    array = new int[capacity];
 }
 
 // delete the allocated memory
 void freeMemory(int *&array, size_t &size, size_t &capacity)
 {
+    delete[] array;
+    array = nullptr;
+    size = 0;
+    capacity = 0;
 }
 
 // reallocate memory with different capacity
 bool reallocateMemory(int *&array, size_t size, size_t newCapacity)
 {
+    int *tempArray = new int[newCapacity];
+    if (tempArray == nullptr)
+    {
+        return false;
+    }
+    for (size_t i = 0; i < size; i++)
+    {
+        tempArray[i] = array[i];
+    }
+
+    delete[] array;
+    array = tempArray;
+    return true;
 }
 
 // resize the array, if necessary
 // double the size
 bool resize(int *&array, size_t size, size_t &capacity)
 {
+    if (size < capacity)
+    {
+        return true;
+    }
+    capacity = capacity * 2;
+    return reallocateMemory(array, size, capacity);
 }
 
 // add element at the end of the array
@@ -34,17 +58,58 @@ bool resize(int *&array, size_t size, size_t &capacity)
 // resize the array, if necessary
 bool addElement(int *&array, size_t &size, size_t &capacity, int newElem)
 {
+    if (size == capacity)
+    {
+        if (!resize(array, size, capacity))
+        {
+            return false;
+        }
+    }
+    array[size++] = newElem;
+    return true;
 }
 
 // add element at a specified position of the array
 // resize if necessary
 bool addElement(int *&array, size_t &size, size_t &capacity, int newElem, size_t position)
 {
+
+    if (position > size)
+    {
+        return false;
+    }
+    if (position == size)
+    {
+        return addElement(array, size, capacity, newElem);
+    }
+
+    if (size == capacity)
+    {
+        if (!resize(array, size, capacity))
+        {
+            return false;
+        }
+    }
+
+    for (size_t i = size; i > position; i--)
+    {
+        array[i] = array[i - 1];
+    }
+
+    array[position] = newElem;
+    size++;
+    return true;
 }
 
 // print the elements of the array
 void print(const int *array, size_t size, size_t capacity)
 {
+    std::cout << "Array contents: ";
+    for (size_t i = 0; i < size; i++)
+    {
+        std::cout << array[i] << " ";
+    }
+    std::cout << std::endl;
 }
 
 // remove the element at the specified position
@@ -52,6 +117,28 @@ void print(const int *array, size_t size, size_t capacity)
 // resize the array, use half of its capacity
 bool removeElement(int *&array, size_t &size, size_t &capacity, size_t position)
 {
+    if (position >= size)
+    {
+        return false;
+    }
+    for (size_t i = position; i < size - 1; i++)
+    {
+        array[i] = array[i + 1];
+    }
+
+    size--;
+
+    if (size < capacity / 4)
+    {
+        size_t newCapacity = capacity / 2;
+        if (!reallocateMemory(array, size, newCapacity))
+        {
+            return false;
+        }
+        capacity = newCapacity;
+    }
+
+    return true;
 }
 
 int main()
